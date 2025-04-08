@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../api/api_client.dart';
 import '../models/pet.dart';
+import '../services/pet_service.dart';
 import 'home_screen.dart';
 import 'add_pet_screen.dart';
 import '../widgets/pet_list_item.dart';
@@ -19,31 +20,18 @@ class PetListScreen extends StatefulWidget {
 
 class _PetListScreenState extends State<PetListScreen> {
   late Future<List<Pet>> _petsFuture;
+  late final PetService _petService;
   String _status = 'available';
 
   @override
   void initState() {
     super.initState();
+    _petService = PetService(widget.apiClient);
     _loadPets();
   }
 
   void _loadPets() {
-    _petsFuture = _fetchPets(_status);
-  }
-
-  Future<List<Pet>> _fetchPets(String status) async {
-    try {
-      final response = await widget.apiClient.request(
-        path: '/pet/findByStatus',
-        queryParameters: {'status': status},
-      );
-
-      final List<dynamic> petsData = response.data;
-      return petsData.map((petData) => Pet.fromJson(petData)).toList();
-    } catch (e) {
-      print('Pet Listesi Çekme Hatası: $e');
-      rethrow;
-    }
+    _petsFuture = _petService.getPetsByStatus(_status);
   }
 
   Future<void> _navigateToAddPet() async {
@@ -66,7 +54,10 @@ class _PetListScreenState extends State<PetListScreen> {
     return Scaffold(
       appBar: _buildAppBar(),
       body: _buildBody(),
-      floatingActionButton: _buildFloatingActionButton(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _navigateToAddPet,
+        child: const Icon(Icons.add),
+      ),
     );
   }
 
@@ -81,19 +72,19 @@ class _PetListScreenState extends State<PetListScreen> {
               _loadPets();
             });
           },
-          itemBuilder: (context) => _buildFilterMenuItems(),
+          itemBuilder:
+              (context) => const [
+                PopupMenuItem(
+                  value: 'available',
+                  child: Text('Mevcut Olanlar'),
+                ),
+                PopupMenuItem(value: 'pending', child: Text('Bekleyenler')),
+                PopupMenuItem(value: 'sold', child: Text('Satılanlar')),
+              ],
           icon: const Icon(Icons.filter_list),
         ),
       ],
     );
-  }
-
-  List<PopupMenuItem<String>> _buildFilterMenuItems() {
-    return const [
-      PopupMenuItem(value: 'available', child: Text('Mevcut Olanlar')),
-      PopupMenuItem(value: 'pending', child: Text('Bekleyenler')),
-      PopupMenuItem(value: 'sold', child: Text('Satılanlar')),
-    ];
   }
 
   Widget _buildBody() {
@@ -103,41 +94,35 @@ class _PetListScreenState extends State<PetListScreen> {
           _loadPets();
         });
       },
-      child: _buildPetsList(),
-    );
-  }
+      child: FutureBuilder<List<Pet>>(
+        future: _petsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const LoadingIndicator();
+          } else if (snapshot.hasError) {
+            return ErrorDisplay(
+              error: snapshot.error,
+              onRetry: () => setState(() => _loadPets()),
+            );
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const EmptyState(
+              message: 'Hiç pet bulunamadı',
+              icon: Icons.pets,
+            );
+          }
 
-  Widget _buildPetsList() {
-    return FutureBuilder<List<Pet>>(
-      future: _petsFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const LoadingIndicator();
-        } else if (snapshot.hasError) {
-          return ErrorDisplay(
-            error: snapshot.error,
-            onRetry: () {
-              setState(() {
-                _loadPets();
-              });
+          return ListView.builder(
+            itemCount: snapshot.data!.length,
+            itemBuilder: (context, index) {
+              final pet = snapshot.data![index];
+              return PetListItem(
+                pet: pet,
+                onTap: () => _navigateToPetDetails(pet),
+              );
             },
           );
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return EmptyState(message: 'Hiç pet bulunamadı', icon: Icons.pets);
-        }
-
-        return _buildPetsListView(snapshot.data!);
-      },
-    );
-  }
-
-  Widget _buildPetsListView(List<Pet> pets) {
-    return ListView.builder(
-      itemCount: pets.length,
-      itemBuilder: (context, index) {
-        final pet = pets[index];
-        return PetListItem(pet: pet, onTap: () => _navigateToPetDetails(pet));
-      },
+        },
+      ),
     );
   }
 
@@ -149,13 +134,6 @@ class _PetListScreenState extends State<PetListScreen> {
             (context) =>
                 HomeScreen(apiClient: widget.apiClient, petId: pet.id ?? 1),
       ),
-    );
-  }
-
-  FloatingActionButton _buildFloatingActionButton() {
-    return FloatingActionButton(
-      onPressed: _navigateToAddPet,
-      child: const Icon(Icons.add),
     );
   }
 }

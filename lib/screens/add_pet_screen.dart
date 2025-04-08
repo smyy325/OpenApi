@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../api/api_client.dart';
 import '../models/pet.dart';
+import '../services/pet_service.dart';
 import '../widgets/loading_indicator.dart';
 
 class AddPetScreen extends StatefulWidget {
@@ -19,6 +20,13 @@ class _AddPetScreenState extends State<AddPetScreen> {
 
   bool _isLoading = false;
   String? _errorMessage;
+  late final PetService _petService;
+
+  @override
+  void initState() {
+    super.initState();
+    _petService = PetService(widget.apiClient);
+  }
 
   @override
   void dispose() {
@@ -34,7 +42,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
       });
 
       try {
-        await _addPet();
+        await _petService.addPet(_nameController.text, _status);
         _handleSuccess();
       } catch (e) {
         _handleError(e.toString());
@@ -44,16 +52,6 @@ class _AddPetScreenState extends State<AddPetScreen> {
         });
       }
     }
-  }
-
-  Future<void> _addPet() async {
-    final newPet = {
-      'name': _nameController.text,
-      'status': _status,
-      'photoUrls': <String>[],
-    };
-
-    await widget.apiClient.request(path: '/pet', method: 'POST', data: newPet);
   }
 
   void _handleSuccess() {
