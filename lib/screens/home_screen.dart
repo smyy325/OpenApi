@@ -5,8 +5,13 @@ import '../models/pet.dart';
 /// Ana ekran, Pet Store API'den pet verilerini gösterir.
 class HomeScreen extends StatefulWidget {
   final APIClient apiClient;
+  final int petId;
 
-  const HomeScreen({Key? key, required this.apiClient}) : super(key: key);
+  const HomeScreen({
+    Key? key,
+    required this.apiClient,
+    this.petId = 1, // Varsayılan olarak 1 ID'li pet
+  }) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -14,7 +19,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late Future<Pet> _petFuture;
-  final int _petId = 1; // Varsayılan olarak id=1 olan peti gösteriyoruz
 
   @override
   void initState() {
@@ -23,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _loadPet() {
-    _petFuture = _fetchPet(_petId);
+    _petFuture = _fetchPet(widget.petId);
   }
 
   Future<Pet> _fetchPet(int id) async {
@@ -34,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('OpenAPI Pet Store Demo')),
+      appBar: AppBar(title: const Text('Pet Detayları')),
       body: RefreshIndicator(
         onRefresh: () async {
           setState(() {

@@ -1,9 +1,5 @@
 import 'package:dio/dio.dart';
 
-// Not: Bu sınıf, OpenAPI tarafından oluşturulan API sınıflarına bir wrapper olarak hizmet edecek
-// API oluşturulduktan sonra buraya eklenecek importlar için bir yer tutucu
-// import 'generated/lib/api.dart';
-
 /// APIClient sınıfı, PetStore API'sine erişmek için kullanılacak temel istemci.
 /// Bu sınıf, Dio HTTP istemcisini yapılandırır ve API isteklerini yönetir.
 class APIClient {
@@ -11,12 +7,6 @@ class APIClient {
 
   // API endpoint'leri için temel URL
   static const String baseUrl = 'https://petstore3.swagger.io/api/v3';
-
-  // OpenAPI tarafından oluşturulan API sınıfları için referanslar
-  // Not: OpenAPI kodu oluşturulduktan sonra bunlar etkinleştirilecek
-  // late final PetApi petApi;
-  // late final StoreApi storeApi;
-  // late final UserApi userApi;
 
   /// APIClient yapıcı metodu.
   /// İsteğe bağlı bir Dio örneği alabilir veya varsayılan olarak yeni bir tane oluşturabilir.
@@ -34,13 +24,6 @@ class APIClient {
     _dio.interceptors.add(
       LogInterceptor(requestBody: true, responseBody: true),
     );
-
-    // OpenAPI tarafından oluşturulan API sınıflarını başlat
-    // Not: OpenAPI kodu oluşturulduktan sonra etkinleştirilecek
-    // final apiClient = ApiClient(dio: _dio);
-    // petApi = PetApi(apiClient);
-    // storeApi = StoreApi(apiClient);
-    // userApi = UserApi(apiClient);
   }
 
   /// Manuel API çağrısı yapmak için kullanılabilir basit bir metot.

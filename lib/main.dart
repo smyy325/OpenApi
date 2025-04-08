@@ -1,37 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'api/api_client.dart';
-import 'screens/home_screen.dart';
-
-// Basit bir Pet modeli tanımlayalım
-class Pet {
-  final int? id;
-  final String? name;
-  final String? status;
-
-  Pet({this.id, this.name, this.status});
-
-  factory Pet.fromJson(Map<String, dynamic> json) {
-    return Pet(id: json['id'], name: json['name'], status: json['status']);
-  }
-}
-
-// Basit bir API sınıfı
-class PetApi {
-  final Dio dio;
-
-  PetApi(this.dio);
-
-  Future<Pet> getPetById(int id) async {
-    final response = await dio.get(
-      'https://petstore3.swagger.io/api/v3/pet/$id',
-    );
-    return Pet.fromJson(response.data);
-  }
-}
+import 'screens/pet_list_screen.dart';
 
 void main() {
-  // API Client sınıfını oluştur
   final apiClient = APIClient(dio: Dio());
 
   runApp(MyApp(apiClient: apiClient));
@@ -52,8 +24,7 @@ class MyApp extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
         useMaterial3: true,
       ),
-      // Ana ekranımızı ayarla
-      home: HomeScreen(apiClient: apiClient),
+      home: PetListScreen(apiClient: apiClient),
     );
   }
 }
