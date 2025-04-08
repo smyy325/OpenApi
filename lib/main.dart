@@ -4,9 +4,14 @@ import 'api/api_client.dart';
 import 'screens/pet_list_screen.dart';
 
 void main() {
-  final apiClient = APIClient(dio: Dio());
+  final apiClient = _setupApiClient();
 
   runApp(MyApp(apiClient: apiClient));
+}
+
+APIClient _setupApiClient() {
+  final dio = Dio();
+  return APIClient(dio: dio);
 }
 
 /// PetStore API'yi kullanarak basit bir OpenAPI Flutter uygulaması.
@@ -19,12 +24,16 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter OpenAPI Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        useMaterial3: true,
-      ),
+      theme: _buildAppTheme(),
       home: PetListScreen(apiClient: apiClient),
+    );
+  }
+
+  ThemeData _buildAppTheme() {
+    return ThemeData(
+      primarySwatch: Colors.blue,
+      visualDensity: VisualDensity.adaptivePlatformDensity,
+      useMaterial3: true,
     );
   }
 }

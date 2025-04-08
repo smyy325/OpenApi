@@ -33,34 +33,10 @@ class _AddPetScreenState extends State<AddPetScreen> {
       });
 
       try {
-        // Yeni bir pet objesi oluştur
-        final newPet = {
-          'name': _nameController.text,
-          'status': _status,
-          'photoUrls': <String>[], // API boş array istiyor
-        };
-
-        // POST isteği ile pet'i ekle
-        await widget.apiClient.request(
-          path: '/pet',
-          method: 'POST',
-          data: newPet,
-        );
-
-        // Başarılı sonuç
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Pet başarıyla eklendi!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          Navigator.pop(context, true); // Başarı işareti ile geri dön
-        }
+        await _addPet();
+        _handleSuccess();
       } catch (e) {
-        setState(() {
-          _errorMessage = 'Pet eklenirken bir hata oluştu: $e';
-        });
+        _handleError(e.toString());
       } finally {
         setState(() {
           _isLoading = false;
@@ -69,88 +45,126 @@ class _AddPetScreenState extends State<AddPetScreen> {
     }
   }
 
+  Future<void> _addPet() async {
+    final newPet = {
+      'name': _nameController.text,
+      'status': _status,
+      'photoUrls': <String>[],
+    };
+
+    await widget.apiClient.request(path: '/pet', method: 'POST', data: newPet);
+  }
+
+  void _handleSuccess() {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pet başarıyla eklendi!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.pop(context, true);
+    }
+  }
+
+  void _handleError(String error) {
+    setState(() {
+      _errorMessage = 'Pet eklenirken bir hata oluştu: $error';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Yeni Pet Ekle')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Pet Adı',
-                  hintText: 'Örn: Fluffy',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Lütfen bir isim girin';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
+      body: _buildBody(),
+    );
+  }
 
-              // Durum seçici
-              DropdownButtonFormField<String>(
-                value: _status,
-                decoration: const InputDecoration(
-                  labelText: 'Durum',
-                  border: OutlineInputBorder(),
-                ),
-                items: const [
-                  DropdownMenuItem(value: 'available', child: Text('Mevcut')),
-                  DropdownMenuItem(value: 'pending', child: Text('Beklemede')),
-                  DropdownMenuItem(value: 'sold', child: Text('Satıldı')),
-                ],
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      _status = value;
-                    });
-                  }
-                },
-              ),
-
-              const SizedBox(height: 24),
-
-              if (_errorMessage != null)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade100,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    _errorMessage!,
-                    style: TextStyle(color: Colors.red.shade900),
-                  ),
-                ),
-
-              const SizedBox(height: 16),
-
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _submitForm,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child:
-                      _isLoading
-                          ? const CircularProgressIndicator()
-                          : const Text('Pet Ekle'),
-                ),
-              ),
-            ],
-          ),
+  Widget _buildBody() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildNameField(),
+            const SizedBox(height: 16),
+            _buildStatusDropdown(),
+            const SizedBox(height: 24),
+            if (_errorMessage != null) _buildErrorMessage(),
+            const SizedBox(height: 16),
+            _buildSubmitButton(),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildNameField() {
+    return TextFormField(
+      controller: _nameController,
+      decoration: const InputDecoration(
+        labelText: 'Pet Adı',
+        hintText: 'Örn: Fluffy',
+        border: OutlineInputBorder(),
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Lütfen bir isim girin';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildStatusDropdown() {
+    return DropdownButtonFormField<String>(
+      value: _status,
+      decoration: const InputDecoration(
+        labelText: 'Durum',
+        border: OutlineInputBorder(),
+      ),
+      items: const [
+        DropdownMenuItem(value: 'available', child: Text('Mevcut')),
+        DropdownMenuItem(value: 'pending', child: Text('Beklemede')),
+        DropdownMenuItem(value: 'sold', child: Text('Satıldı')),
+      ],
+      onChanged: (value) {
+        if (value != null) {
+          setState(() {
+            _status = value;
+          });
+        }
+      },
+    );
+  }
+
+  Widget _buildErrorMessage() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.red.shade100,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(_errorMessage!, style: TextStyle(color: Colors.red.shade900)),
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : _submitForm,
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+        ),
+        child:
+            _isLoading
+                ? const CircularProgressIndicator()
+                : const Text('Pet Ekle'),
       ),
     );
   }

@@ -39,55 +39,59 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Pet Detayları')),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          setState(() {
-            _loadPet();
-          });
-        },
-        child: FutureBuilder<Pet>(
-          future: _petFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 60,
-                      color: Colors.red,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Hata oluştu: ${snapshot.error}',
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _loadPet();
-                        });
-                      },
-                      child: const Text('Tekrar Dene'),
-                    ),
-                  ],
-                ),
-              );
-            } else if (!snapshot.hasData) {
-              return const Center(child: Text('Veri bulunamadı'));
-            }
+      body: _buildBody(),
+    );
+  }
 
-            final pet = snapshot.data!;
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: PetDetailsCard(pet: pet),
-            );
-          },
-        ),
+  Widget _buildBody() {
+    return RefreshIndicator(
+      onRefresh: () async {
+        setState(() {
+          _loadPet();
+        });
+      },
+      child: _buildPetDetails(),
+    );
+  }
+
+  Widget _buildPetDetails() {
+    return FutureBuilder<Pet>(
+      future: _petFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return _buildErrorWidget(snapshot.error);
+        } else if (!snapshot.hasData) {
+          return const Center(child: Text('Veri bulunamadı'));
+        }
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: PetDetailsCard(pet: snapshot.data!),
+        );
+      },
+    );
+  }
+
+  Widget _buildErrorWidget(Object? error) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.error_outline, size: 60, color: Colors.red),
+          const SizedBox(height: 16),
+          Text('Hata oluştu: $error', textAlign: TextAlign.center),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                _loadPet();
+              });
+            },
+            child: const Text('Tekrar Dene'),
+          ),
+        ],
       ),
     );
   }
@@ -108,64 +112,71 @@ class PetDetailsCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Pet adı
-            Text(
-              pet.name ?? 'İsimsiz Pet',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
+            _buildHeader(context),
             const Divider(),
-
-            // Pet ID
-            _buildInfoRow(context, 'ID:', '${pet.id}'),
-
-            // Pet durumu
-            _buildInfoRow(
-              context,
-              'Durum:',
-              pet.status ?? 'Belirtilmemiş',
-              valueColor: _getStatusColor(pet.status),
-            ),
-
-            // Kategori bilgisi
-            if (pet.category != null)
-              _buildInfoRow(context, 'Kategori:', pet.category!.name ?? ''),
-
-            const SizedBox(height: 16),
-
-            // Etiketler
-            if (pet.tags != null && pet.tags!.isNotEmpty) ...[
-              Text(
-                'Etiketler:',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children:
-                    pet.tags!.map((tag) {
-                      return Chip(label: Text(tag.name ?? 'İsimsiz Etiket'));
-                    }).toList(),
-              ),
-            ],
-
-            const SizedBox(height: 16),
-
-            // Fotoğraf URL'leri
-            if (pet.photoUrls != null && pet.photoUrls!.isNotEmpty) ...[
-              Text(
-                'Fotoğraflar:',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              for (final url in pet.photoUrls!)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(url),
-                ),
-            ],
+            _buildBasicInfo(context),
+            if (pet.tags != null && pet.tags!.isNotEmpty)
+              _buildTagsSection(context),
+            if (pet.photoUrls != null && pet.photoUrls!.isNotEmpty)
+              _buildPhotosSection(context),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Text(
+      pet.name ?? 'İsimsiz Pet',
+      style: Theme.of(context).textTheme.headlineMedium,
+    );
+  }
+
+  Widget _buildBasicInfo(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildInfoRow(context, 'ID:', '${pet.id}'),
+        _buildInfoRow(
+          context,
+          'Durum:',
+          pet.status ?? 'Belirtilmemiş',
+          valueColor: _getStatusColor(pet.status),
+        ),
+        if (pet.category != null)
+          _buildInfoRow(context, 'Kategori:', pet.category!.name ?? ''),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildTagsSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Etiketler:', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          children:
+              pet.tags!.map((tag) {
+                return Chip(label: Text(tag.name ?? 'İsimsiz Etiket'));
+              }).toList(),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildPhotosSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Fotoğraflar:', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        for (final url in pet.photoUrls!)
+          Padding(padding: const EdgeInsets.only(bottom: 8), child: Text(url)),
+      ],
     );
   }
 
