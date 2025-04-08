@@ -25,10 +25,15 @@ class PetListItem extends StatelessWidget {
   }
 
   Widget _buildLeadingAvatar() {
+    final String firstLetter =
+        (pet.name?.isNotEmpty == true)
+            ? pet.name!.substring(0, 1).toUpperCase()
+            : '?';
+
     return CircleAvatar(
       backgroundColor: _getStatusColor(pet.status) ?? Colors.grey,
       child: Text(
-        pet.name?.substring(0, 1).toUpperCase() ?? '?',
+        firstLetter,
         style: const TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.bold,
