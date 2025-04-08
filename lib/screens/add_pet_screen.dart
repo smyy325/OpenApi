@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../api/api_client.dart';
 import '../models/pet.dart';
+import '../widgets/loading_indicator.dart';
 
 class AddPetScreen extends StatefulWidget {
   final APIClient apiClient;
@@ -77,11 +78,11 @@ class _AddPetScreenState extends State<AddPetScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Yeni Pet Ekle')),
-      body: _buildBody(),
+      body: _isLoading ? const LoadingIndicator() : _buildForm(),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildForm() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Form(
@@ -157,14 +158,11 @@ class _AddPetScreenState extends State<AddPetScreen> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: _isLoading ? null : _submitForm,
+        onPressed: _submitForm,
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 16),
         ),
-        child:
-            _isLoading
-                ? const CircularProgressIndicator()
-                : const Text('Pet Ekle'),
+        child: const Text('Pet Ekle'),
       ),
     );
   }

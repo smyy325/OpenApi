@@ -3,6 +3,10 @@ import '../api/api_client.dart';
 import '../models/pet.dart';
 import 'home_screen.dart';
 import 'add_pet_screen.dart';
+import '../widgets/pet_list_item.dart';
+import '../widgets/loading_indicator.dart';
+import '../widgets/error_display.dart';
+import '../widgets/empty_state.dart';
 
 class PetListScreen extends StatefulWidget {
   final APIClient apiClient;
@@ -108,37 +112,22 @@ class _PetListScreenState extends State<PetListScreen> {
       future: _petsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const LoadingIndicator();
         } else if (snapshot.hasError) {
-          return _buildErrorWidget(snapshot.error);
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('Hiç pet bulunamadı'));
-        }
-
-        return _buildPetsListView(snapshot.data!);
-      },
-    );
-  }
-
-  Widget _buildErrorWidget(Object? error) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.error_outline, size: 60, color: Colors.red),
-          const SizedBox(height: 16),
-          Text('Hata oluştu: $error', textAlign: TextAlign.center),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
+          return ErrorDisplay(
+            error: snapshot.error,
+            onRetry: () {
               setState(() {
                 _loadPets();
               });
             },
-            child: const Text('Tekrar Dene'),
-          ),
-        ],
-      ),
+          );
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return EmptyState(message: 'Hiç pet bulunamadı', icon: Icons.pets);
+        }
+
+        return _buildPetsListView(snapshot.data!);
+      },
     );
   }
 
@@ -168,57 +157,5 @@ class _PetListScreenState extends State<PetListScreen> {
       onPressed: _navigateToAddPet,
       child: const Icon(Icons.add),
     );
-  }
-}
-
-class PetListItem extends StatelessWidget {
-  final Pet pet;
-  final VoidCallback onTap;
-
-  const PetListItem({Key? key, required this.pet, required this.onTap})
-    : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: ListTile(
-        leading: _buildLeadingAvatar(),
-        title: Text(pet.name ?? 'İsimsiz Pet'),
-        subtitle: Text(
-          'ID: ${pet.id} - Durum: ${pet.status ?? 'Belirtilmemiş'}',
-        ),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-        onTap: onTap,
-      ),
-    );
-  }
-
-  Widget _buildLeadingAvatar() {
-    return CircleAvatar(
-      backgroundColor: _getStatusColor(pet.status) ?? Colors.grey,
-      child: Text(
-        pet.name?.substring(0, 1).toUpperCase() ?? '?',
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  Color? _getStatusColor(String? status) {
-    if (status == null) return null;
-
-    switch (status.toLowerCase()) {
-      case 'available':
-        return Colors.green;
-      case 'pending':
-        return Colors.orange;
-      case 'sold':
-        return Colors.red;
-      default:
-        return null;
-    }
   }
 }
