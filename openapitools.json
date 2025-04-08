@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/@openapitools/openapi-generator-cli/config.schema.json",
+  "spaces": 2,
+  "generator-cli": {
+    "version": "7.12.0",
+    "generators": {
+      "dart-petstore-client": {
+        "generatorName": "dart",
+        "inputSpec": "./api/openapi.yaml",
+        "outputDir": "./lib/api/generated",
+        "additionalProperties": {
+          "pubName": "petstore_api",
+          "pubAuthor": "OpenAPI Generator Team",
+          "pubDescription": "Flutter OpenAPI Generator Example",
+          "pubVersion": "1.0.0",
+          "pubHomepage": "https://github.com/yourusername/flutter-openapi-example",
+          "browserClient": false,
+          "pubLibrary": "petstore_api"
+        }
+      }
+    }
+  }
+}
