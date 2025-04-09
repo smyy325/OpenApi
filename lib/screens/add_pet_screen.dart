@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../api/api_client.dart';
-import '../models/pet.dart';
+import 'package:openapi/api.dart' as openapi;
 import '../services/pet_service.dart';
 import '../widgets/loading_indicator.dart';
 
@@ -42,8 +42,12 @@ class _AddPetScreenState extends State<AddPetScreen> {
       });
 
       try {
-        await _petService.addPet(_nameController.text, _status);
-        _handleSuccess();
+        final pet = await _petService.addPet(_nameController.text, _status);
+        if (pet != null) {
+          _handleSuccess();
+        } else {
+          _handleError('Pet eklenemedi');
+        }
       } catch (e) {
         _handleError(e.toString());
       } finally {

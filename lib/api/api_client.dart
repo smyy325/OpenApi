@@ -1,33 +1,30 @@
 import 'package:dio/dio.dart';
+import 'package:openapi/api.dart' as openapi;
 
-/// APIClient sınıfı, PetStore API'sine erişmek için kullanılacak temel istemci.
-/// Bu sınıf, Dio HTTP istemcisini yapılandırır ve API isteklerini yönetir.
 class APIClient {
-  final Dio _dio;
+  final openapi.ApiClient _client;
+  late final openapi.PetApi _petApi;
+  late final openapi.StoreApi _storeApi;
+  late final openapi.UserApi _userApi;
 
-  // API endpoint'leri için temel URL
-  static const String baseUrl = 'https://petstore3.swagger.io/api/v3';
-
-  /// APIClient yapıcı metodu.
-  /// İsteğe bağlı bir Dio örneği alabilir veya varsayılan olarak yeni bir tane oluşturabilir.
-  APIClient({Dio? dio}) : _dio = dio ?? Dio() {
-    // Dio istemcisini yapılandır
-    _dio.options.baseUrl = baseUrl;
-    _dio.options.connectTimeout = const Duration(seconds: 10);
-    _dio.options.receiveTimeout = const Duration(seconds: 10);
-    _dio.options.headers = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    };
-
-    // İstek/yanıt yakalamak için interceptor ekle
-    _dio.interceptors.add(
-      LogInterceptor(requestBody: true, responseBody: true),
-    );
+  APIClient()
+      : _client =
+            openapi.ApiClient(basePath: 'https://petstore3.swagger.io/api/v3') {
+    _petApi = openapi.PetApi(_client);
+    _storeApi = openapi.StoreApi(_client);
+    _userApi = openapi.UserApi(_client);
   }
 
-  /// Manuel API çağrısı yapmak için kullanılabilir basit bir metot.
-  /// OpenAPI oluşturucusu kullanılmadan önce veya ek işlevsellik için.
+  openapi.PetApi get petApi => _petApi;
+  openapi.StoreApi get storeApi => _storeApi;
+  openapi.UserApi get userApi => _userApi;
+
+  // Eski metodları yeni API sınıflarını kullanacak şekilde güncelle
+  Future<Map<String, dynamic>> getPetById(int id) async {
+    final pet = await _petApi.getPetById(id);
+    return pet?.toJson() ?? {};
+  }
+
   Future<Response> request({
     required String path,
     String method = 'GET',
@@ -35,28 +32,23 @@ class APIClient {
     dynamic data,
     Map<String, dynamic>? headers,
   }) async {
+    final dio = Dio()..options.baseUrl = 'https://petstore3.swagger.io/api/v3';
+    dio.options.headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      ...?headers,
+    };
+
     try {
-      final response = await _dio.request(
+      final response = await dio.request(
         path,
-        options: Options(method: method, headers: headers),
+        options: Options(method: method),
         queryParameters: queryParameters,
         data: data,
       );
       return response;
     } on DioException catch (e) {
-      // Hata işleme
       print('API İsteği Hatası: ${e.message}');
-      rethrow;
-    }
-  }
-
-  /// Pet bilgisini ID'ye göre almak için örnek bir metot
-  Future<Map<String, dynamic>> getPetById(int id) async {
-    try {
-      final response = await request(path: '/pet/$id');
-      return response.data;
-    } catch (e) {
-      print('Pet Getirme Hatası: $e');
       rethrow;
     }
   }

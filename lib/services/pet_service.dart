@@ -1,33 +1,39 @@
 import '../api/api_client.dart';
-import '../models/pet.dart';
+import 'package:openapi/api.dart';
 
 /// Pet Store API ile iletişim kurmak için hizmet sınıfı
 class PetService {
-  final APIClient _apiClient;
+  final PetApi _petApi;
 
-  PetService(this._apiClient);
+  PetService(APIClient client) : _petApi = client.petApi;
 
   /// Belirtilen kimliğe sahip pet detaylarını getir
-  Future<Pet> getPetById(int id) async {
-    final petData = await _apiClient.getPetById(id);
-    return Pet.fromJson(petData);
+  Future<Pet?> getPetById(int id) async {
+    return await _petApi.getPetById(id);
   }
 
   /// Belirtilen duruma göre pet listesini getir
-  Future<List<Pet>> getPetsByStatus(String status) async {
-    final response = await _apiClient.request(
-      path: '/pet/findByStatus',
-      queryParameters: {'status': status},
-    );
-
-    final List<dynamic> petsData = response.data;
-    return petsData.map((petData) => Pet.fromJson(petData)).toList();
+  Future<List<Pet>?> getPetsByStatus(String status) async {
+    return await _petApi.findPetsByStatus(status: status);
   }
 
   /// Yeni bir pet ekle
-  Future<void> addPet(String name, String status) async {
-    final newPet = {'name': name, 'status': status, 'photoUrls': <String>[]};
+  Future<Pet?> addPet(String name, String status) async {
+    final pet = Pet(
+      name: name,
+      status: PetStatusEnum.fromJson(status),
+      photoUrls: [],
+    );
+    return await _petApi.addPet(pet);
+  }
 
-    await _apiClient.request(path: '/pet', method: 'POST', data: newPet);
+  /// Pet bilgilerini güncelle
+  Future<Pet?> updatePet(Pet pet) async {
+    return await _petApi.updatePet(pet);
+  }
+
+  /// Pet'i sil
+  Future<void> deletePet(int id) async {
+    await _petApi.deletePet(id);
   }
 }
