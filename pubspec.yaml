@@ -1,5 +1,5 @@
 name: openapi2
-description: "Flutter OpenAPI Generator Example Project"
+description: A Flutter project for demonstrating OpenAPI integration.
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.2.6 <4.0.0'
+  sdk: '>=3.3.0 <4.0.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -33,17 +33,14 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.2
-  dio: ^5.7.0
-  http: ^0.13.0
-  collection: ^1.17.0
-  meta: ^1.1.8
-  intl: any
-  json_annotation: ^4.8.1
-  built_value: ^8.6.3
+  cupertino_icons: ^1.0.6
+  dio: ^5.4.1
+  provider: ^6.1.1
   built_collection: ^5.1.1
-  openapi:
-    path: packages/openapi
+  
+  # OpenAPI ile oluşturulan PetStore API kütüphanesi
+  petstore_api:
+    path: lib/api/generated
 
 dev_dependencies:
   flutter_test:
@@ -54,12 +51,12 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^2.0.0
-  build_runner: ^2.4.8
-  json_serializable: ^6.7.1
-  openapi_generator: ^4.10.0
-  built_value_generator: ^8.6.3
-  test: ^1.24.0
+  flutter_lints: ^3.0.0
+  build_runner: ^2.4.6
+  built_value_generator: ^8.9.0
+  openapi_generator: ^4.13.1
+  openapi_generator_cli: ^5.0.0
+  openapi_generator_annotations: ^5.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -107,3 +104,4 @@ flutter:
   assets:
     - assets/
     - api/
+    - api/openapi.yaml

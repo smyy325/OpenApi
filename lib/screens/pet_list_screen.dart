@@ -72,15 +72,14 @@ class _PetListScreenState extends State<PetListScreen> {
               _loadPets();
             });
           },
-          itemBuilder:
-              (context) => const [
-                PopupMenuItem(
-                  value: 'available',
-                  child: Text('Mevcut Olanlar'),
-                ),
-                PopupMenuItem(value: 'pending', child: Text('Bekleyenler')),
-                PopupMenuItem(value: 'sold', child: Text('Satılanlar')),
-              ],
+          itemBuilder: (context) => const [
+            PopupMenuItem(
+              value: 'available',
+              child: Text('Mevcut Olanlar'),
+            ),
+            PopupMenuItem(value: 'pending', child: Text('Bekleyenler')),
+            PopupMenuItem(value: 'sold', child: Text('Satılanlar')),
+          ],
           icon: const Icon(Icons.filter_list),
         ),
       ],
@@ -130,9 +129,8 @@ class _PetListScreenState extends State<PetListScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder:
-            (context) =>
-                HomeScreen(apiClient: widget.apiClient, petId: pet.id ?? 1),
+        builder: (context) =>
+            HomeScreen(apiClient: widget.apiClient, petId: pet.id ?? 1),
       ),
     );
   }

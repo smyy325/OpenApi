@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter OpenAPI Demo',
+      title: 'OpenAPI Generator Demo',
       theme: _buildAppTheme(),
       home: PetListScreen(apiClient: apiClient),
     );
